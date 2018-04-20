@@ -11,11 +11,15 @@ var Level_proto = Object.create(Phaser.State.prototype);
 Level.prototype = Level_proto;
 Level.prototype.constructor = Level;
 
+var healthCount;
+var fruitCount;
+
 Level.prototype.init = function () {
 	
 	this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 	this.scale.pageAlignHorizontally = true;
 	this.scale.pageAlignVertically = true;
+
 };
 
 // load 
@@ -26,7 +30,6 @@ Level.prototype.preload = function () {
 
 // place sprites and colliders
 Level.prototype.create = function () {
-
 	// this.add.sprite(x, y, key, frame, group)
 	
 	this.beforeCreate();
@@ -34,7 +37,10 @@ Level.prototype.create = function () {
 	var _BG = this.add.tileSprite(-11, -7, 1713, 750, 'BG', null);
 	_BG.scale.setTo(1.1289946683730876, 1.0275188997398834);
 	_BG.fixedToCamera = true;
-	
+
+	var _FG = this.add.tileSprite(-11, -7, 1, 1, 'BG', null);
+    	_FG.fixedToCamera = true;
+
 	var _back = this.add.group();
 	
 	var _Bush__2_ = this.add.tileSprite(103, 1459, 133, 65, 'objects', 'Bush (2)', _back);
@@ -179,14 +185,20 @@ Level.prototype.create = function () {
 	_player.animations.add('jump', [4, 5], 6, true);
 	_player.animations.add('idle', [0, 1, 2], 4, true);
 	_player.fruits = 0;
+	_player.health = 100;
 	_player.coffee = false;
 	_player.coffeeCount = 0;
 	_player.testCoverage = 0;
+
+
 	var punch = {name: "punch"};
 	_player.weapons =[punch]; // spool through array of weapons
 	this.game.physics.arcade.enable(_player);
 	_player.body.setSize(86.39996337890625, 85.96431732177734, 46.800018310546875, 109.2168960571289);
 	
+	var _enemy = this.add.sprite(100, 1331, 'enemy', 0);
+	_enemy.health = 5;
+
 	var _water = this.add.tileSprite(-51, 1644, 2241, 99, 'tiles', '17');
 		
 	var _fruits = this.add.physicsGroup(Phaser.Physics.ARCADE);
@@ -361,26 +373,28 @@ Level.prototype.create = function () {
 	
 	this.add.tileSprite(-12, 1740, 2201, 25, 'tiles', 'physics', _collisionLayer);
 	
-	this.add.sprite(2000, 1529, 'tiles', '14', _back);
-	this.add.tileSprite(2000, 1529, 74, 15, 'tiles', 'physics', _collisionLayer);
+    healthCount = this.game.add.text(100, 100, "health: "+ _player.health, {font:'32px Arial', fill: '#FF0000', align: 'center'});
+    fruitCount = this.game.add.text(100, 130, "fruit"+ _player.fruits, {font:'32px Arial', fill: '#FF0000', align: 'center'});
+    healthCount.anchor.set(0, 0);
+    fruitCount.anchor.set(0, 0);
+    _FG.addChild(healthCount);
+    _FG.addChild(fruitCount);
 
-	this.add.sprite(2128, 1529, 'tiles', '14', _back);
-	this.add.tileSprite(2128, 1529, 74, 15, 'tiles', 'physics', _collisionLayer);
+	this.tiler(2000, 1529, 20, _collisionLayer);
 
-	this.add.sprite(2256, 1529, 'tiles', '14', _back);
-	this.add.tileSprite(2256, 1529, 74, 15, 'tiles', 'physics', _collisionLayer);
-
-	this.add.sprite(2384, 1529, 'tiles', '14', _back);
-	this.add.tileSprite(2384, 1529, 74, 15, 'tiles', 'physics', _collisionLayer);
-
-	this.add.sprite(2512, 1529, 'tiles', '14', _back);
-	this.add.tileSprite(2512, 1529, 74, 15, 'tiles', 'physics', _collisionLayer);
-
-	this.add.sprite(2640, 1529, 'tiles', '14', _back);
-	this.add.tileSprite(2640, 1529, 74, 15, 'tiles', 'physics', _collisionLayer);
-
-	this.add.sprite(2768, 1529, 'tiles', '14', _back);
-	this.add.tileSprite(2768, 1529, 74, 15, 'tiles', 'physics', _collisionLayer);
+//	this.createPhysicalTile(2000, 1529, _collisionLayer);
+//
+//	this.createPhysicalTile(2128, 1529, _collisionLayer);
+//
+//	this.createPhysicalTile(2256, 1529, _collisionLayer);
+//
+//	this.createPhysicalTile(2384, 1529, _collisionLayer);
+//
+//	this.createPhysicalTile(2512, 1529, _collisionLayer);
+//
+//	this.createPhysicalTile(2640, 1529, _collisionLayer);
+//
+//	this.createPhysicalTile(2768, 1529, _collisionLayer);
 	
 	var _coffee = this.add.physicsGroup(Phaser.Physics.ARCADE);
 	this.add.sprite(639, 1444, 'objects', 'coffee', _coffee);
@@ -391,12 +405,11 @@ Level.prototype.create = function () {
 	_collisionLayer.setAll("body.allowGravity", false);
 	_collisionLayer.setAll("renderable", false);
 	_collisionLayer.setAll("body.checkCollision.down", false);
-	
-	
-	// public fields
-	
+
+	// public fields	
 	this.fBG = _BG;
 	this.fPlayer = _player;
+	this.fEnemy = _enemy;
 	this.fCoffee = _coffee;
 	this.fWater = _water;
 	this.fFruits = _fruits;
@@ -405,7 +418,21 @@ Level.prototype.create = function () {
 	
 };
 
+Level.prototype.tiler = function(startx, starty, number, collision){
+		for(var i = 0; i < number; i++){
+			this.createPhysicalTile(startx, starty, collision);
+			startx += 128;
+		}
+	};
 
+Level.prototype.createPhysicalTile = function(x, y, collision){
+	this.add.sprite(x, y, 'tiles', '14', this._back);
+	this.add.tileSprite(x, y, 74, 15, 'tiles', 'physics', collision);
+}
+
+Level.prototype.createGhostTile = function(x, y){
+	this.add.sprite(x, y, 'tiles', '14', _back);
+}
 
 Level.prototype.beforeCreate = function() {
 
@@ -427,6 +454,11 @@ Level.prototype.afterCreate = function () {
 };
 
 Level.prototype.update = function() {
+
+    healthCount.setText("Health: " +this.fPlayer.health);
+    healthCount.bringToTop();
+    fruitCount.setText("Fruit: "+this.fPlayer.fruits);
+    fruitCount.bringToTop();
 
 	if(this.fPlayer.fruits > 10){
 		var weapon = {name: "Gatling Gun", bullets: 100};
@@ -579,11 +611,34 @@ Level.prototype.playerVsCoffee = function(player, coffee) {
  * @param {Phaser.Sprite}
  *            weapon
  */
-playerGetsWeapon = function(player, weapon) {
+Level.prototype.playerGetsWeapon = function(player, weapon) {
 	player.weapons.push(weapon.name);
 	player.weapons.forEach(function(wep){
 		console.log("You have got :"+wep.name);
 	});
+
+
+
+// Level.prototype.playerVsEnemy = function(player, enemy) {
+	
+// 	enemy.body.enable = false;
+	
+// 	this.add.tween(enemy).to({
+// 		y : enemy.y - 50
+// 	}, 1000, "Expo.easeOut", true);
+	
+// 	this.add.tween(enemy.scale).to({
+// 		x : 2,
+// 		y : 2
+// 	}, 1000, "Linear", true);
+
+// 	this.add.tween(enemy).to({
+// 		alpha : 0.2
+// 	}, 1000, "Linear", true).onComplete.add(enemy.kill, enemy);
+// }
+
+
+    
 
 };
 
