@@ -47,8 +47,16 @@ Level.prototype.create = function () {
 	_Bush__2_.scale.setTo(1.2436090513997489, 1.4061541519275604);
 	
 	this.add.sprite(1114, 493, 'objects', 'Crate', _back);
-	
-	this.add.sprite(1074, 1143, 'tiles', '1', _back);
+
+	var tileX[];
+	var tileY[];
+
+	function addTile(x, y, game){
+	var sprite = game.add.sprite(x,y,'tiles','1', _back);
+	sprite.scale.setTo(4, 4);
+	}
+
+	addTile(1074, 1143, this);
 	
 	this.add.tileSprite(1202, 1143, 512, 128, 'tiles', '2', _back);
 	
@@ -189,7 +197,6 @@ Level.prototype.create = function () {
 	_player.coffee = false;
 	_player.coffeeCount = 0;
 	_player.testCoverage = 0;
-
 
 	var punch = {name: "punch"};
 	_player.weapons =[punch]; // spool through array of weapons
@@ -382,20 +389,6 @@ Level.prototype.create = function () {
 
 	this.tiler(2000, 1529, 20, _collisionLayer);
 
-//	this.createPhysicalTile(2000, 1529, _collisionLayer);
-//
-//	this.createPhysicalTile(2128, 1529, _collisionLayer);
-//
-//	this.createPhysicalTile(2256, 1529, _collisionLayer);
-//
-//	this.createPhysicalTile(2384, 1529, _collisionLayer);
-//
-//	this.createPhysicalTile(2512, 1529, _collisionLayer);
-//
-//	this.createPhysicalTile(2640, 1529, _collisionLayer);
-//
-//	this.createPhysicalTile(2768, 1529, _collisionLayer);
-	
 	var _coffee = this.add.physicsGroup(Phaser.Physics.ARCADE);
 	this.add.sprite(639, 1444, 'objects', 'coffee', _coffee);
 
@@ -418,16 +411,16 @@ Level.prototype.create = function () {
 	
 };
 
-Level.prototype.tiler = function(startx, starty, number, collision){
+Level.prototype.tiler = function(startx, starty, number, collisionLayer){
 		for(var i = 0; i < number; i++){
-			this.createPhysicalTile(startx, starty, collision);
+			this.createPhysicalTile(startx, starty, collisionLayer);
 			startx += 128;
 		}
 	};
 
-Level.prototype.createPhysicalTile = function(x, y, collision){
+Level.prototype.createPhysicalTile = function(x, y, collisionLayer){
 	this.add.sprite(x, y, 'tiles', '14', this._back);
-	this.add.tileSprite(x, y, 74, 15, 'tiles', 'physics', collision);
+	this.add.tileSprite(x, y, 74, 15, 'tiles', 'physics', this._collisionLayer);
 }
 
 Level.prototype.createGhostTile = function(x, y){
